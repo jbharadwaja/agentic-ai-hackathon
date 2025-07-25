@@ -27,6 +27,15 @@
         "documentation": {}
     },
     {
+        "label": "datetime",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "datetime",
+        "description": "datetime",
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
         "label": "load_dotenv",
         "importPath": "dotenv",
         "description": "dotenv",
@@ -74,7 +83,7 @@
         "kind": 5,
         "importPath": "app",
         "description": "app",
-        "peekOfCode": "MEMORY_FILE = \"chat_memory.json\"\n# Load environment variables\nload_dotenv()\ngenai.configure(api_key=os.getenv(\"GOOGLE_API_KEY\"))\n# Load the model\nmodel = genai.GenerativeModel(\"models/gemini-1.5-flash-002\")\n# Streamlit UI setup\nst.set_page_config(page_title=\"Agentic AI Chat\", page_icon=\"🤖\")\nst.title(\"🤖 Agentic AI Assistant\")\nrole = st.selectbox(",
+        "peekOfCode": "MEMORY_FILE = \"chat_memory.json\"\n# 🚀 Load environment\nload_dotenv()\ngenai.configure(api_key=os.getenv(\"GOOGLE_API_KEY\"))\nmodel = genai.GenerativeModel(\"models/gemini-1.5-flash-002\")\n# 🖥️ Streamlit App Config\nst.set_page_config(page_title=\"Agentic AI Chat\", page_icon=\"🤖\")\nst.title(\"🤖 Agentic AI Assistant\")\n# ------------------ SESSION INIT ------------------\nif \"selected_role\" not in st.session_state:",
         "detail": "app",
         "documentation": {}
     },
@@ -83,16 +92,7 @@
         "kind": 5,
         "importPath": "app",
         "description": "app",
-        "peekOfCode": "model = genai.GenerativeModel(\"models/gemini-1.5-flash-002\")\n# Streamlit UI setup\nst.set_page_config(page_title=\"Agentic AI Chat\", page_icon=\"🤖\")\nst.title(\"🤖 Agentic AI Assistant\")\nrole = st.selectbox(\n    \"🧠 Choose your assistant role:\",\n    [\"General\", \"Developer\", \"Marketer\", \"Student\", \"Productivity Coach\", \"Creative Writer\"]\n)\nst.caption(f\"💼 Current Role: *{role}*\")\n# Role-based system prompt (custom instructions to Gemini)",
-        "detail": "app",
-        "documentation": {}
-    },
-    {
-        "label": "role",
-        "kind": 5,
-        "importPath": "app",
-        "description": "app",
-        "peekOfCode": "role = st.selectbox(\n    \"🧠 Choose your assistant role:\",\n    [\"General\", \"Developer\", \"Marketer\", \"Student\", \"Productivity Coach\", \"Creative Writer\"]\n)\nst.caption(f\"💼 Current Role: *{role}*\")\n# Role-based system prompt (custom instructions to Gemini)\nrole_prompts = {\n    \"General\": \"You are a helpful and friendly assistant.\",\n    \"Developer\": \"You are a technical assistant for developers. Answer with clear explanations and code examples when helpful.\",\n    \"Marketer\": \"You are a digital marketing assistant. Provide strategies, copy ideas, and funnel suggestions.\",",
+        "peekOfCode": "model = genai.GenerativeModel(\"models/gemini-1.5-flash-002\")\n# 🖥️ Streamlit App Config\nst.set_page_config(page_title=\"Agentic AI Chat\", page_icon=\"🤖\")\nst.title(\"🤖 Agentic AI Assistant\")\n# ------------------ SESSION INIT ------------------\nif \"selected_role\" not in st.session_state:\n    st.session_state.selected_role = \"General\"\nif \"messages\" not in st.session_state:\n    try:\n        with open(MEMORY_FILE, \"r\") as f:",
         "detail": "app",
         "documentation": {}
     },
@@ -101,7 +101,7 @@
         "kind": 5,
         "importPath": "app",
         "description": "app",
-        "peekOfCode": "role_prompts = {\n    \"General\": \"You are a helpful and friendly assistant.\",\n    \"Developer\": \"You are a technical assistant for developers. Answer with clear explanations and code examples when helpful.\",\n    \"Marketer\": \"You are a digital marketing assistant. Provide strategies, copy ideas, and funnel suggestions.\",\n    \"Student\": \"You are a study buddy. Help with explaining topics simply and giving examples.\",\n    \"Productivity Coach\": \"You are a motivational productivity coach. Help users stay focused, plan, and stay motivated.\",\n    \"Creative Writer\": \"You are a writing assistant. Help with storytelling, prompts, and creative writing tips.\"\n}\nsystem_prompt = role_prompts.get(role, role_prompts[\"General\"])\nwith st.expander(\"🔧 System Prompt\", expanded=False):",
+        "peekOfCode": "role_prompts = {\n    \"General\": \"You are a helpful and friendly assistant.\",\n    \"Developer\": \"You are a technical assistant for developers. Answer with clear explanations and code examples when helpful.\",\n    \"Marketer\": \"You are a digital marketing assistant. Provide strategies, copy ideas, and funnel suggestions.\",\n    \"Student\": \"You are a study buddy. Help with explaining topics simply and giving examples.\",\n    \"Productivity Coach\": \"You are a motivational productivity coach. Help users stay focused, plan, and stay motivated.\",\n    \"Creative Writer\": \"You are a writing assistant. Help with storytelling, prompts, and creative writing tips.\"\n}\nsystem_prompt = role_prompts.get(role, role_prompts[\"General\"])\nst.caption(f\"💼 Current Role: *{role}*\")",
         "detail": "app",
         "documentation": {}
     },
@@ -110,7 +110,7 @@
         "kind": 5,
         "importPath": "app",
         "description": "app",
-        "peekOfCode": "system_prompt = role_prompts.get(role, role_prompts[\"General\"])\nwith st.expander(\"🔧 System Prompt\", expanded=False):\n    st.code(system_prompt, language=\"markdown\")\n# Initialize chat history\nif \"messages\" not in st.session_state:\n    try:\n        with open(MEMORY_FILE, \"r\") as f:\n            st.session_state.messages = json.load(f)\n    except FileNotFoundError:\n        st.session_state.messages = []",
+        "peekOfCode": "system_prompt = role_prompts.get(role, role_prompts[\"General\"])\nst.caption(f\"💼 Current Role: *{role}*\")\nwith st.expander(\"🔧 System Prompt\", expanded=False):\n    st.code(system_prompt, language=\"markdown\")\n# ------------------ DISPLAY CHAT HISTORY ------------------\nfor msg in st.session_state.messages:\n    with st.chat_message(msg[\"role\"]):\n        st.markdown(msg[\"content\"])\n# ------------------ CLEAR MEMORY ------------------\nif st.button(\"🧽 Clear Memory\"):",
         "detail": "app",
         "documentation": {}
     },
@@ -119,7 +119,7 @@
         "kind": 5,
         "importPath": "app",
         "description": "app",
-        "peekOfCode": "uploaded_file = st.file_uploader(\"📄 Upload a PDF or TXT file\", type=[\"pdf\", \"txt\"])\n# Variable to hold extracted file content\nfile_text = \"\"\n# ✅ Extract text from uploaded file\nif uploaded_file:\n    if uploaded_file.type == \"application/pdf\":\n        pdf_reader = PyPDF2.PdfReader(uploaded_file)\n        for page in pdf_reader.pages:\n            file_text += page.extract_text()\n    elif uploaded_file.type == \"text/plain\":",
+        "peekOfCode": "uploaded_file = st.file_uploader(\"📄 Upload a PDF or TXT file\", type=[\"pdf\", \"txt\"])\nfile_text = \"\"\nif uploaded_file:\n    if uploaded_file.type == \"application/pdf\":\n        pdf_reader = PyPDF2.PdfReader(uploaded_file)\n        for page in pdf_reader.pages:\n            file_text += page.extract_text()\n    elif uploaded_file.type == \"text/plain\":\n        stringio = io.StringIO(uploaded_file.getvalue().decode(\"utf-8\"))\n        file_text = stringio.read()",
         "detail": "app",
         "documentation": {}
     },
@@ -128,7 +128,7 @@
         "kind": 5,
         "importPath": "app",
         "description": "app",
-        "peekOfCode": "file_text = \"\"\n# ✅ Extract text from uploaded file\nif uploaded_file:\n    if uploaded_file.type == \"application/pdf\":\n        pdf_reader = PyPDF2.PdfReader(uploaded_file)\n        for page in pdf_reader.pages:\n            file_text += page.extract_text()\n    elif uploaded_file.type == \"text/plain\":\n        stringio = io.StringIO(uploaded_file.getvalue().decode(\"utf-8\"))\n        file_text = stringio.read()",
+        "peekOfCode": "file_text = \"\"\nif uploaded_file:\n    if uploaded_file.type == \"application/pdf\":\n        pdf_reader = PyPDF2.PdfReader(uploaded_file)\n        for page in pdf_reader.pages:\n            file_text += page.extract_text()\n    elif uploaded_file.type == \"text/plain\":\n        stringio = io.StringIO(uploaded_file.getvalue().decode(\"utf-8\"))\n        file_text = stringio.read()\n    file_text = file_text[:3000]",
         "detail": "app",
         "documentation": {}
     },
@@ -137,7 +137,7 @@
         "kind": 5,
         "importPath": "app",
         "description": "app",
-        "peekOfCode": "prompt = st.chat_input(\"Ask me anything!\")\nif prompt:\n    # Add user's message to the conversation\n    st.chat_message(\"user\").markdown(prompt)\n    st.session_state.messages.append({\"role\": \"user\", \"content\": prompt})\n    # Save memory to file\n    with open(MEMORY_FILE, \"w\") as f:\n        json.dump(st.session_state.messages, f)\n    # Build the full memory as a conversation string\n    conversation = system_prompt + \"\\n\\n\"",
+        "peekOfCode": "prompt = st.chat_input(\"Ask me anything!\")\nif prompt:\n    st.chat_message(\"user\").markdown(prompt)\n    st.session_state.messages.append({\"role\": \"user\", \"content\": prompt})\n    with open(MEMORY_FILE, \"w\") as f:\n        json.dump(st.session_state.messages, f)\n    conversation = system_prompt + \"\\n\\n\"\n    for msg in st.session_state.messages:\n        role_label = \"User\" if msg[\"role\"] == \"user\" else \"AI\"\n        conversation += f\"{role_label}: {msg['content']}\\n\"",
         "detail": "app",
         "documentation": {}
     },

@@ -1,38 +1,69 @@
 # 🌐 Standard Library Imports
-import os         # For environment variables and file handling
-import json       # For saving and loading session memory
-import io         # For in-memory file handling (used with file uploads)
+import os
+import json
+import io
+import datetime
 
-# 🧪 Environment Variable Loader
-from dotenv import load_dotenv  # For loading .env file with API key
+# 🧪 Load environment variables
+from dotenv import load_dotenv
 
 # 📦 Third-Party Libraries
-import streamlit as st          # Streamlit for the web app interface
-import google.generativeai as genai  # Gemini API for content generation
-import PyPDF2                   # PDF processing (used to extract text from uploaded PDFs)
+import streamlit as st
+import google.generativeai as genai
+import PyPDF2
 
-
+# Constants
 MEMORY_FILE = "chat_memory.json"
 
-# Load environment variables
+# 🚀 Load environment
 load_dotenv()
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-
-# Load the model
 model = genai.GenerativeModel("models/gemini-1.5-flash-002")
 
-# Streamlit UI setup
+# 🖥️ Streamlit App Config
 st.set_page_config(page_title="Agentic AI Chat", page_icon="🤖")
 st.title("🤖 Agentic AI Assistant")
 
+# ------------------ SESSION INIT ------------------
+if "selected_role" not in st.session_state:
+    st.session_state.selected_role = "General"
 
-role = st.selectbox(
-    "🧠 Choose your assistant role:",
-    ["General", "Developer", "Marketer", "Student", "Productivity Coach", "Creative Writer"]
-)
-st.caption(f"💼 Current Role: *{role}*")
+if "messages" not in st.session_state:
+    try:
+        with open(MEMORY_FILE, "r") as f:
+            st.session_state.messages = json.load(f)
+    except FileNotFoundError:
+        st.session_state.messages = []
 
-# Role-based system prompt (custom instructions to Gemini)
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+
+if "conversations" not in st.session_state:
+    st.session_state.conversations = {}
+
+# ------------------ SIDEBAR ------------------
+with st.sidebar:
+    st.header("🛠️ Settings")
+
+    role = st.selectbox(
+        "Choose Role:",
+        ["General", "Developer", "Marketer", "Student", "Productivity Coach", "Creative Writer"]
+    )
+
+    # 📂 Save and Reset
+    if st.button("🆕 Start New Conversation"):
+        if st.session_state.messages:
+            label = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            st.session_state.conversations[label] = st.session_state.messages.copy()
+        st.session_state.messages = []
+
+    st.markdown("### 📁 Previous Conversations")
+    for label, messages in st.session_state.conversations.items():
+        if st.button(label):
+            st.session_state.messages = messages
+            st.rerun()
+
+# ------------------ ROLE PROMPTS ------------------
 role_prompts = {
     "General": "You are a helpful and friendly assistant.",
     "Developer": "You are a technical assistant for developers. Answer with clear explanations and code examples when helpful.",
@@ -41,38 +72,27 @@ role_prompts = {
     "Productivity Coach": "You are a motivational productivity coach. Help users stay focused, plan, and stay motivated.",
     "Creative Writer": "You are a writing assistant. Help with storytelling, prompts, and creative writing tips."
 }
-
 system_prompt = role_prompts.get(role, role_prompts["General"])
+
+st.caption(f"💼 Current Role: *{role}*")
 with st.expander("🔧 System Prompt", expanded=False):
     st.code(system_prompt, language="markdown")
 
-# Initialize chat history
-if "messages" not in st.session_state:
-    try:
-        with open(MEMORY_FILE, "r") as f:
-            st.session_state.messages = json.load(f)
-    except FileNotFoundError:
-        st.session_state.messages = []
-
-
-# Display previous chat messages
+# ------------------ DISPLAY CHAT HISTORY ------------------
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
-        
+
+# ------------------ CLEAR MEMORY ------------------
 if st.button("🧽 Clear Memory"):
     st.session_state.messages = []
     with open(MEMORY_FILE, "w") as f:
         json.dump([], f)
     st.rerun()
 
-# PDF upload
+# ------------------ FILE UPLOAD ------------------
 uploaded_file = st.file_uploader("📄 Upload a PDF or TXT file", type=["pdf", "txt"])
-
-# Variable to hold extracted file content
 file_text = ""
-
-# ✅ Extract text from uploaded file
 if uploaded_file:
     if uploaded_file.type == "application/pdf":
         pdf_reader = PyPDF2.PdfReader(uploaded_file)
@@ -81,52 +101,50 @@ if uploaded_file:
     elif uploaded_file.type == "text/plain":
         stringio = io.StringIO(uploaded_file.getvalue().decode("utf-8"))
         file_text = stringio.read()
-
-    # Optional: Limit file text length to avoid Gemini token limits
-    file_text = file_text[:3000]  # 🧠 Keep only first 3000 characters (safe for Gemini Flash)
+    file_text = file_text[:3000]
     st.success("✅ File uploaded and text extracted!")
-# ---------------- END FILE UPLOAD SECTION ----------------
 
-
-# Input box
+# ------------------ CHAT INPUT ------------------
 prompt = st.chat_input("Ask me anything!")
 
 if prompt:
-    # Add user's message to the conversation
     st.chat_message("user").markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
-    
-    # Save memory to file
+
     with open(MEMORY_FILE, "w") as f:
         json.dump(st.session_state.messages, f)
 
-    # Build the full memory as a conversation string
     conversation = system_prompt + "\n\n"
     for msg in st.session_state.messages:
         role_label = "User" if msg["role"] == "user" else "AI"
         conversation += f"{role_label}: {msg['content']}\n"
 
-    # Streamlit UI for AI response
     with st.chat_message("ai"):
         with st.spinner("Thinking..."):
             try:
-                # 🧠 Build prompt dynamically based on file upload
                 if file_text:
                     prompt_to_send = f"{system_prompt}\n\nThe user also uploaded a file with the following content:\n\n{file_text}\n\nUser: {prompt}"
                 else:
                     prompt_to_send = f"{system_prompt}\n\nUser: {prompt}"
 
-                # 🔁 Streaming response
                 response = model.generate_content(prompt_to_send, stream=True)
                 full_response = ""
                 for chunk in response:
                     if chunk.text:
                         full_response += chunk.text
                         st.markdown(chunk.text)
-                
+
                 st.session_state.messages.append({"role": "ai", "content": full_response})
 
             except Exception as e:
                 st.error(f"⚠️ Error generating response: {e}")
 
-
+# ------------------ DOWNLOAD LOG ------------------
+if st.session_state["messages"]:
+    chat_log = json.dumps(st.session_state["messages"], indent=2)
+    st.download_button(
+        label="📅 Download Chat Log",
+        data=chat_log,
+        file_name="chat_log.json",
+        mime="application/json"
+    )
