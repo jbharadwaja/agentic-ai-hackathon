@@ -1,0 +1,162 @@
+[
+    {
+        "label": "os",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "os",
+        "description": "os",
+        "detail": "os",
+        "documentation": {}
+    },
+    {
+        "label": "json",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "json",
+        "description": "json",
+        "detail": "json",
+        "documentation": {}
+    },
+    {
+        "label": "io",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "io",
+        "description": "io",
+        "detail": "io",
+        "documentation": {}
+    },
+    {
+        "label": "load_dotenv",
+        "importPath": "dotenv",
+        "description": "dotenv",
+        "isExtraImport": true,
+        "detail": "dotenv",
+        "documentation": {}
+    },
+    {
+        "label": "load_dotenv",
+        "importPath": "dotenv",
+        "description": "dotenv",
+        "isExtraImport": true,
+        "detail": "dotenv",
+        "documentation": {}
+    },
+    {
+        "label": "streamlit",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "streamlit",
+        "description": "streamlit",
+        "detail": "streamlit",
+        "documentation": {}
+    },
+    {
+        "label": "google.generativeai",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "google.generativeai",
+        "description": "google.generativeai",
+        "detail": "google.generativeai",
+        "documentation": {}
+    },
+    {
+        "label": "PyPDF2",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "PyPDF2",
+        "description": "PyPDF2",
+        "detail": "PyPDF2",
+        "documentation": {}
+    },
+    {
+        "label": "MEMORY_FILE",
+        "kind": 5,
+        "importPath": "app",
+        "description": "app",
+        "peekOfCode": "MEMORY_FILE = \"chat_memory.json\"\n# Load environment variables\nload_dotenv()\ngenai.configure(api_key=os.getenv(\"GOOGLE_API_KEY\"))\n# Load the model\nmodel = genai.GenerativeModel(\"models/gemini-1.5-flash-002\")\n# Streamlit UI setup\nst.set_page_config(page_title=\"Agentic AI Chat\", page_icon=\"🤖\")\nst.title(\"🤖 Agentic AI Assistant\")\nrole = st.selectbox(",
+        "detail": "app",
+        "documentation": {}
+    },
+    {
+        "label": "model",
+        "kind": 5,
+        "importPath": "app",
+        "description": "app",
+        "peekOfCode": "model = genai.GenerativeModel(\"models/gemini-1.5-flash-002\")\n# Streamlit UI setup\nst.set_page_config(page_title=\"Agentic AI Chat\", page_icon=\"🤖\")\nst.title(\"🤖 Agentic AI Assistant\")\nrole = st.selectbox(\n    \"🧠 Choose your assistant role:\",\n    [\"General\", \"Developer\", \"Marketer\", \"Student\", \"Productivity Coach\", \"Creative Writer\"]\n)\nst.caption(f\"💼 Current Role: *{role}*\")\n# Role-based system prompt (custom instructions to Gemini)",
+        "detail": "app",
+        "documentation": {}
+    },
+    {
+        "label": "role",
+        "kind": 5,
+        "importPath": "app",
+        "description": "app",
+        "peekOfCode": "role = st.selectbox(\n    \"🧠 Choose your assistant role:\",\n    [\"General\", \"Developer\", \"Marketer\", \"Student\", \"Productivity Coach\", \"Creative Writer\"]\n)\nst.caption(f\"💼 Current Role: *{role}*\")\n# Role-based system prompt (custom instructions to Gemini)\nrole_prompts = {\n    \"General\": \"You are a helpful and friendly assistant.\",\n    \"Developer\": \"You are a technical assistant for developers. Answer with clear explanations and code examples when helpful.\",\n    \"Marketer\": \"You are a digital marketing assistant. Provide strategies, copy ideas, and funnel suggestions.\",",
+        "detail": "app",
+        "documentation": {}
+    },
+    {
+        "label": "role_prompts",
+        "kind": 5,
+        "importPath": "app",
+        "description": "app",
+        "peekOfCode": "role_prompts = {\n    \"General\": \"You are a helpful and friendly assistant.\",\n    \"Developer\": \"You are a technical assistant for developers. Answer with clear explanations and code examples when helpful.\",\n    \"Marketer\": \"You are a digital marketing assistant. Provide strategies, copy ideas, and funnel suggestions.\",\n    \"Student\": \"You are a study buddy. Help with explaining topics simply and giving examples.\",\n    \"Productivity Coach\": \"You are a motivational productivity coach. Help users stay focused, plan, and stay motivated.\",\n    \"Creative Writer\": \"You are a writing assistant. Help with storytelling, prompts, and creative writing tips.\"\n}\nsystem_prompt = role_prompts.get(role, role_prompts[\"General\"])\nwith st.expander(\"🔧 System Prompt\", expanded=False):",
+        "detail": "app",
+        "documentation": {}
+    },
+    {
+        "label": "system_prompt",
+        "kind": 5,
+        "importPath": "app",
+        "description": "app",
+        "peekOfCode": "system_prompt = role_prompts.get(role, role_prompts[\"General\"])\nwith st.expander(\"🔧 System Prompt\", expanded=False):\n    st.code(system_prompt, language=\"markdown\")\n# Initialize chat history\nif \"messages\" not in st.session_state:\n    try:\n        with open(MEMORY_FILE, \"r\") as f:\n            st.session_state.messages = json.load(f)\n    except FileNotFoundError:\n        st.session_state.messages = []",
+        "detail": "app",
+        "documentation": {}
+    },
+    {
+        "label": "uploaded_file",
+        "kind": 5,
+        "importPath": "app",
+        "description": "app",
+        "peekOfCode": "uploaded_file = st.file_uploader(\"📄 Upload a PDF or TXT file\", type=[\"pdf\", \"txt\"])\n# Variable to hold extracted file content\nfile_text = \"\"\n# ✅ Extract text from uploaded file\nif uploaded_file:\n    if uploaded_file.type == \"application/pdf\":\n        pdf_reader = PyPDF2.PdfReader(uploaded_file)\n        for page in pdf_reader.pages:\n            file_text += page.extract_text()\n    elif uploaded_file.type == \"text/plain\":",
+        "detail": "app",
+        "documentation": {}
+    },
+    {
+        "label": "file_text",
+        "kind": 5,
+        "importPath": "app",
+        "description": "app",
+        "peekOfCode": "file_text = \"\"\n# ✅ Extract text from uploaded file\nif uploaded_file:\n    if uploaded_file.type == \"application/pdf\":\n        pdf_reader = PyPDF2.PdfReader(uploaded_file)\n        for page in pdf_reader.pages:\n            file_text += page.extract_text()\n    elif uploaded_file.type == \"text/plain\":\n        stringio = io.StringIO(uploaded_file.getvalue().decode(\"utf-8\"))\n        file_text = stringio.read()",
+        "detail": "app",
+        "documentation": {}
+    },
+    {
+        "label": "prompt",
+        "kind": 5,
+        "importPath": "app",
+        "description": "app",
+        "peekOfCode": "prompt = st.chat_input(\"Ask me anything!\")\nif prompt:\n    # Add user's message to the conversation\n    st.chat_message(\"user\").markdown(prompt)\n    st.session_state.messages.append({\"role\": \"user\", \"content\": prompt})\n    # Save memory to file\n    with open(MEMORY_FILE, \"w\") as f:\n        json.dump(st.session_state.messages, f)\n    # Build the full memory as a conversation string\n    conversation = system_prompt + \"\\n\\n\"",
+        "detail": "app",
+        "documentation": {}
+    },
+    {
+        "label": "model",
+        "kind": 5,
+        "importPath": "gemini_test",
+        "description": "gemini_test",
+        "peekOfCode": "model = genai.GenerativeModel(\"models/gemini-1.5-flash-002\")\nresponse = model.generate_content(\"Tell me a fun fact about AI.\")\nprint(response.text)",
+        "detail": "gemini_test",
+        "documentation": {}
+    },
+    {
+        "label": "response",
+        "kind": 5,
+        "importPath": "gemini_test",
+        "description": "gemini_test",
+        "peekOfCode": "response = model.generate_content(\"Tell me a fun fact about AI.\")\nprint(response.text)",
+        "detail": "gemini_test",
+        "documentation": {}
+    }
+]
