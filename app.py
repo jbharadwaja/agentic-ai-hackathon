@@ -51,17 +51,18 @@ with st.sidebar:
     )
 
     # 📂 Save and Reset
-    if st.button("🆕 Start New Conversation"):
-        if st.session_state.messages:
-            label = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            st.session_state.conversations[label] = st.session_state.messages.copy()
-        st.session_state.messages = []
+    # if st.button("🆕 Start New Conversation"):
+    #     if st.session_state.messages:
+    #         label = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    #         st.session_state.conversations[label] = st.session_state.messages.copy()
+    #     st.session_state.messages = []
 
     st.markdown("### 📁 Previous Conversations")
     for label, messages in st.session_state.conversations.items():
         if st.button(label):
             st.session_state.messages = messages
             st.rerun()
+
 
 # ------------------ ROLE PROMPTS ------------------
 role_prompts = {
@@ -79,30 +80,47 @@ with st.expander("🔧 System Prompt", expanded=False):
     st.code(system_prompt, language="markdown")
 
 # ------------------ DISPLAY CHAT HISTORY ------------------
-for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
+# 🎨 Message Styling Helper
+def format_message(role, content):
+    if role == "user":
+        return f"""
+        <div style='background-color:#f0f2f6; padding:12px; border-radius:10px; margin-bottom:8px;'>
+            <b>🧑 You:</b><br>{content}
+        </div>
+        """
+    else:
+        return f"""
+        <div style='background-color:#e6f4ea; padding:12px; border-radius:10px; margin-bottom:8px;'>
+            <b>🤖 AI:</b><br>{content}
+        </div>
+        """
 
-# ------------------ CLEAR MEMORY ------------------
-if st.button("🧽 Clear Memory"):
-    st.session_state.messages = []
-    with open(MEMORY_FILE, "w") as f:
-        json.dump([], f)
-    st.rerun()
+# 💬 Display Messages with Style
+for msg in st.session_state.messages:
+    html = format_message(msg["role"], msg["content"])
+    st.markdown(html, unsafe_allow_html=True)
+
 
 # ------------------ FILE UPLOAD ------------------
-uploaded_file = st.file_uploader("📄 Upload a PDF or TXT file", type=["pdf", "txt"])
+# Variable to hold extracted file content
 file_text = ""
-if uploaded_file:
-    if uploaded_file.type == "application/pdf":
-        pdf_reader = PyPDF2.PdfReader(uploaded_file)
-        for page in pdf_reader.pages:
-            file_text += page.extract_text()
-    elif uploaded_file.type == "text/plain":
-        stringio = io.StringIO(uploaded_file.getvalue().decode("utf-8"))
-        file_text = stringio.read()
-    file_text = file_text[:3000]
-    st.success("✅ File uploaded and text extracted!")
+
+# 📄 File Upload Section in Expander
+with st.expander("📄 Upload Reference Document"):
+    uploaded_file = st.file_uploader("Upload a PDF or TXT file", type=["pdf", "txt"])
+
+    if uploaded_file:
+        if uploaded_file.type == "application/pdf":
+            pdf_reader = PyPDF2.PdfReader(uploaded_file)
+            for page in pdf_reader.pages:
+                file_text += page.extract_text()
+        elif uploaded_file.type == "text/plain":
+            stringio = io.StringIO(uploaded_file.getvalue().decode("utf-8"))
+            file_text = stringio.read()
+
+        file_text = file_text[:3000]  # Limit for Gemini Flash token safety
+        st.success("✅ File uploaded and text extracted!")
+
 
 # ------------------ CHAT INPUT ------------------
 prompt = st.chat_input("Ask me anything!")
@@ -120,31 +138,96 @@ if prompt:
         conversation += f"{role_label}: {msg['content']}\n"
 
     with st.chat_message("ai"):
-        with st.spinner("Thinking..."):
+        with st.spinner("🤖 Generating a thoughtful response..."):
             try:
-                if file_text:
-                    prompt_to_send = f"{system_prompt}\n\nThe user also uploaded a file with the following content:\n\n{file_text}\n\nUser: {prompt}"
-                else:
-                    prompt_to_send = f"{system_prompt}\n\nUser: {prompt}"
+                # 🧠 Build full conversation history string
+                conversation = system_prompt + "\n\n"
 
-                response = model.generate_content(prompt_to_send, stream=True)
+                for msg in st.session_state.messages:
+                    role_label = "User" if msg["role"] == "user" else "AI"
+                    conversation += f"{role_label}: {msg['content']}\n"
+
+                # Append current user prompt
+                conversation += f"User: {prompt}\n"
+
+                # Optionally include uploaded file content
+                if file_text:
+                    conversation = (
+                        system_prompt +
+                        "\n\nThe user also uploaded a file with the following content:\n\n" +
+                        file_text[:3000] +  # Just in case it's long
+                        "\n\n" + conversation
+                    )
+
+                response = model.generate_content(conversation, stream=True)
+
                 full_response = ""
+                placeholder = st.empty()
+                buffer = ""
+
                 for chunk in response:
                     if chunk.text:
-                        full_response += chunk.text
-                        st.markdown(chunk.text)
+                        buffer += chunk.text
 
+                        # Only render on full words to avoid awkward breaks
+                        if buffer.endswith(" ") or buffer.endswith("\n"):
+                            full_response += buffer
+                            placeholder.markdown(full_response)
+                            buffer = ""
+
+                # Flush any remaining content
+                if buffer:
+                    full_response += buffer
+                    placeholder.markdown(full_response)
+
+                # Save final response
                 st.session_state.messages.append({"role": "ai", "content": full_response})
 
             except Exception as e:
                 st.error(f"⚠️ Error generating response: {e}")
 
+
+
 # ------------------ DOWNLOAD LOG ------------------
-if st.session_state["messages"]:
-    chat_log = json.dumps(st.session_state["messages"], indent=2)
-    st.download_button(
-        label="📅 Download Chat Log",
-        data=chat_log,
-        file_name="chat_log.json",
-        mime="application/json"
-    )
+
+# 🧭 Action Buttons Layout
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    if st.button("🆕 New Chat"):
+        if "chat_history" not in st.session_state:
+            st.session_state["chat_history"] = []
+        st.session_state["chat_history"].append({
+            "role": st.session_state.get("selected_role", "General"),
+            "messages": st.session_state.get("messages", []).copy()
+        })
+        current_role = st.session_state["selected_role"]
+        st.session_state.clear()
+        st.session_state["selected_role"] = current_role
+        st.rerun()
+
+with col2:
+    if st.button("🧽 Clear Memory"):
+        st.session_state.messages = []
+        with open(MEMORY_FILE, "w") as f:
+            json.dump([], f)
+        st.rerun()
+
+with col3:
+    if st.session_state.get("messages"):
+        chat_log = json.dumps(st.session_state["messages"], indent=2)
+        st.download_button(
+            label="💾 Download Chat Log",
+            data=chat_log,
+            file_name="chat_log.json",
+            mime="application/json"
+        )
+# ------------------ CLEAR MEMORY ------------------
+# if st.button("🧽 Clear Memory"):
+#     st.session_state.messages = []
+#     with open(MEMORY_FILE, "w") as f:
+#         json.dump([], f)
+#     st.rerun()
+
+    
+st.markdown("<hr><center>Built for Google x ODSC Hackathon 2025 🚀</center>", unsafe_allow_html=True)

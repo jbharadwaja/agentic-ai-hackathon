@@ -79,6 +79,15 @@
         "documentation": {}
     },
     {
+        "label": "format_message",
+        "kind": 2,
+        "importPath": "app",
+        "description": "app",
+        "peekOfCode": "def format_message(role, content):\n    if role == \"user\":\n        return f\"\"\"\n        <div style='background-color:#f0f2f6; padding:12px; border-radius:10px; margin-bottom:8px;'>\n            <b>🧑 You:</b><br>{content}\n        </div>\n        \"\"\"\n    else:\n        return f\"\"\"\n        <div style='background-color:#e6f4ea; padding:12px; border-radius:10px; margin-bottom:8px;'>",
+        "detail": "app",
+        "documentation": {}
+    },
+    {
         "label": "MEMORY_FILE",
         "kind": 5,
         "importPath": "app",
@@ -110,16 +119,7 @@
         "kind": 5,
         "importPath": "app",
         "description": "app",
-        "peekOfCode": "system_prompt = role_prompts.get(role, role_prompts[\"General\"])\nst.caption(f\"💼 Current Role: *{role}*\")\nwith st.expander(\"🔧 System Prompt\", expanded=False):\n    st.code(system_prompt, language=\"markdown\")\n# ------------------ DISPLAY CHAT HISTORY ------------------\nfor msg in st.session_state.messages:\n    with st.chat_message(msg[\"role\"]):\n        st.markdown(msg[\"content\"])\n# ------------------ CLEAR MEMORY ------------------\nif st.button(\"🧽 Clear Memory\"):",
-        "detail": "app",
-        "documentation": {}
-    },
-    {
-        "label": "uploaded_file",
-        "kind": 5,
-        "importPath": "app",
-        "description": "app",
-        "peekOfCode": "uploaded_file = st.file_uploader(\"📄 Upload a PDF or TXT file\", type=[\"pdf\", \"txt\"])\nfile_text = \"\"\nif uploaded_file:\n    if uploaded_file.type == \"application/pdf\":\n        pdf_reader = PyPDF2.PdfReader(uploaded_file)\n        for page in pdf_reader.pages:\n            file_text += page.extract_text()\n    elif uploaded_file.type == \"text/plain\":\n        stringio = io.StringIO(uploaded_file.getvalue().decode(\"utf-8\"))\n        file_text = stringio.read()",
+        "peekOfCode": "system_prompt = role_prompts.get(role, role_prompts[\"General\"])\nst.caption(f\"💼 Current Role: *{role}*\")\nwith st.expander(\"🔧 System Prompt\", expanded=False):\n    st.code(system_prompt, language=\"markdown\")\n# ------------------ DISPLAY CHAT HISTORY ------------------\n# 🎨 Message Styling Helper\ndef format_message(role, content):\n    if role == \"user\":\n        return f\"\"\"\n        <div style='background-color:#f0f2f6; padding:12px; border-radius:10px; margin-bottom:8px;'>",
         "detail": "app",
         "documentation": {}
     },
@@ -128,7 +128,7 @@
         "kind": 5,
         "importPath": "app",
         "description": "app",
-        "peekOfCode": "file_text = \"\"\nif uploaded_file:\n    if uploaded_file.type == \"application/pdf\":\n        pdf_reader = PyPDF2.PdfReader(uploaded_file)\n        for page in pdf_reader.pages:\n            file_text += page.extract_text()\n    elif uploaded_file.type == \"text/plain\":\n        stringio = io.StringIO(uploaded_file.getvalue().decode(\"utf-8\"))\n        file_text = stringio.read()\n    file_text = file_text[:3000]",
+        "peekOfCode": "file_text = \"\"\n# 📄 File Upload Section in Expander\nwith st.expander(\"📄 Upload Reference Document\"):\n    uploaded_file = st.file_uploader(\"Upload a PDF or TXT file\", type=[\"pdf\", \"txt\"])\n    if uploaded_file:\n        if uploaded_file.type == \"application/pdf\":\n            pdf_reader = PyPDF2.PdfReader(uploaded_file)\n            for page in pdf_reader.pages:\n                file_text += page.extract_text()\n        elif uploaded_file.type == \"text/plain\":",
         "detail": "app",
         "documentation": {}
     },
