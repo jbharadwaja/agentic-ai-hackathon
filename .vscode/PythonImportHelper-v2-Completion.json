@@ -92,7 +92,7 @@
         "kind": 5,
         "importPath": "app",
         "description": "app",
-        "peekOfCode": "MEMORY_FILE = \"chat_memory.json\"\n# 🚀 Load environment\nload_dotenv()\ngenai.configure(api_key=os.getenv(\"GOOGLE_API_KEY\"))\nmodel = genai.GenerativeModel(\"models/gemini-1.5-flash-002\")\n# 🖥️ Streamlit App Config\nst.set_page_config(page_title=\"Agentic AI Chat\", page_icon=\"🤖\")\nst.title(\"🤖 Agentic AI Assistant\")\n# ------------------ SESSION INIT ------------------\nif \"selected_role\" not in st.session_state:",
+        "peekOfCode": "MEMORY_FILE = \"chat_memory.json\"\n# ------------------ SESSION INIT ------------------\nif \"selected_role\" not in st.session_state:\n    st.session_state.selected_role = \"General\"\nif \"chat_history\" not in st.session_state:\n    try:\n        with open(\"chat_history.json\", \"r\") as f:\n            st.session_state.chat_history = json.load(f)\n    except FileNotFoundError:\n        st.session_state.chat_history = []",
         "detail": "app",
         "documentation": {}
     },
@@ -101,7 +101,7 @@
         "kind": 5,
         "importPath": "app",
         "description": "app",
-        "peekOfCode": "model = genai.GenerativeModel(\"models/gemini-1.5-flash-002\")\n# 🖥️ Streamlit App Config\nst.set_page_config(page_title=\"Agentic AI Chat\", page_icon=\"🤖\")\nst.title(\"🤖 Agentic AI Assistant\")\n# ------------------ SESSION INIT ------------------\nif \"selected_role\" not in st.session_state:\n    st.session_state.selected_role = \"General\"\nif \"messages\" not in st.session_state:\n    try:\n        with open(MEMORY_FILE, \"r\") as f:",
+        "peekOfCode": "model = genai.GenerativeModel(\"models/gemini-1.5-flash-002\")\n# 🖥️ Streamlit App Config\nst.set_page_config(page_title=\"Agentic AI Chat\", page_icon=\"🤖\")\nst.title(\"🤖 Agentic AI Assistant\")\n# ------------------ SIDEBAR ------------------\nwith st.sidebar:\n    st.header(\"🛠️ Settings\")\n    role = st.selectbox(\n        \"Choose Role:\",\n        [\"General\", \"Developer\", \"Marketer\", \"Student\", \"Productivity Coach\", \"Creative Writer\"]",
         "detail": "app",
         "documentation": {}
     },
@@ -119,7 +119,7 @@
         "kind": 5,
         "importPath": "app",
         "description": "app",
-        "peekOfCode": "system_prompt = role_prompts.get(role, role_prompts[\"General\"])\nst.caption(f\"💼 Current Role: *{role}*\")\nwith st.expander(\"🔧 System Prompt\", expanded=False):\n    st.code(system_prompt, language=\"markdown\")\n# ------------------ DISPLAY CHAT HISTORY ------------------\n# 🎨 Message Styling Helper\ndef format_message(role, content):\n    if role == \"user\":\n        return f\"\"\"\n        <div style='background-color:#f0f2f6; padding:12px; border-radius:10px; margin-bottom:8px;'>",
+        "peekOfCode": "system_prompt = role_prompts.get(role, role_prompts[\"General\"])\nst.caption(f\"💼 Current Role: *{role}*\")\nwith st.expander(\"🔧 System Prompt\", expanded=False):\n    st.code(system_prompt, language=\"markdown\")\n# ------------------ DISPLAY CHAT HISTORY ------------------\ndef format_message(role, content):\n    if role == \"user\":\n        return f\"\"\"\n        <div style='background-color:#f0f2f6; padding:12px; border-radius:10px; margin-bottom:8px;'>\n            <b>🧑 You:</b><br>{content}",
         "detail": "app",
         "documentation": {}
     },
@@ -128,7 +128,7 @@
         "kind": 5,
         "importPath": "app",
         "description": "app",
-        "peekOfCode": "file_text = \"\"\n# 📄 File Upload Section in Expander\nwith st.expander(\"📄 Upload Reference Document\"):\n    uploaded_file = st.file_uploader(\"Upload a PDF or TXT file\", type=[\"pdf\", \"txt\"])\n    if uploaded_file:\n        if uploaded_file.type == \"application/pdf\":\n            pdf_reader = PyPDF2.PdfReader(uploaded_file)\n            for page in pdf_reader.pages:\n                file_text += page.extract_text()\n        elif uploaded_file.type == \"text/plain\":",
+        "peekOfCode": "file_text = \"\"\nwith st.expander(\"📄 Upload Reference Document\"):\n    uploaded_file = st.file_uploader(\"Upload a PDF or TXT file\", type=[\"pdf\", \"txt\"])\n    if uploaded_file:\n        if uploaded_file.type == \"application/pdf\":\n            pdf_reader = PyPDF2.PdfReader(uploaded_file)\n            for page in pdf_reader.pages:\n                file_text += page.extract_text()\n        elif uploaded_file.type == \"text/plain\":\n            stringio = io.StringIO(uploaded_file.getvalue().decode(\"utf-8\"))",
         "detail": "app",
         "documentation": {}
     },
@@ -137,7 +137,7 @@
         "kind": 5,
         "importPath": "app",
         "description": "app",
-        "peekOfCode": "prompt = st.chat_input(\"Ask me anything!\")\nif prompt:\n    st.chat_message(\"user\").markdown(prompt)\n    st.session_state.messages.append({\"role\": \"user\", \"content\": prompt})\n    with open(MEMORY_FILE, \"w\") as f:\n        json.dump(st.session_state.messages, f)\n    conversation = system_prompt + \"\\n\\n\"\n    for msg in st.session_state.messages:\n        role_label = \"User\" if msg[\"role\"] == \"user\" else \"AI\"\n        conversation += f\"{role_label}: {msg['content']}\\n\"",
+        "peekOfCode": "prompt = st.chat_input(\"Ask me anything!\")\nif prompt:\n    st.chat_message(\"user\").markdown(prompt)\n    st.session_state.messages.append({\"role\": \"user\", \"content\": prompt})\n    conversation = system_prompt + \"\\n\\n\"\n    for msg in st.session_state.messages:\n        role_label = \"User\" if msg[\"role\"] == \"user\" else \"AI\"\n        conversation += f\"{role_label}: {msg['content']}\\n\"\n    with st.chat_message(\"ai\"):\n        with st.spinner(\"🤖 Generating a thoughtful response...\"):",
         "detail": "app",
         "documentation": {}
     },
